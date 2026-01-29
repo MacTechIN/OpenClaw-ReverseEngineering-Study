@@ -1,0 +1,7 @@
+# Optional Python dependencies for specific skills
+# Usage: pip install -r requirements.txt
+
+# skills/local-places
+fastapi>=0.110.0
+httpx>=0.27.0
+uvicorn[standard]>=0.29.0
