@@ -1485,6 +1485,28 @@ export async function startGatewayServer(port = 18789, opts: GatewayServerOption
 안내 데스크(`server.ts`)와 사령부(`server.impl.ts`)가 준비되었습니다. 하지만 아직 이 서버는 **벙어리**입니다. 외부에서 말을 걸 수도, 대답할 수도 없습니다. 이제 **"입(Mouth)"** 을 달아줄 차례입니다.
 
 > [!NOTE]
+> **🤔 "입(Mouth)"의 진짜 역할은?**
+> 
+> **단순한 출력기가 아닙니다!** HTTP 서버는 **양방향 통신 장치**입니다:
+> 
+> 1. **입력 기능 (Request Listener)**:
+>    - 외부에서 들어오는 모든 HTTP 요청(`GET`, `POST`, `PUT`, `DELETE`)을 **듣고(Listen)** 받아들입니다.
+>    - 예: 웹훅(Slack, GitHub), API 호출(`/v1/chat/completions`), 브라우저 접속(`/ui`)
+> 
+> 2. **출력 기능 (Response Sender)**:
+>    - 요청을 처리한 후 **응답(Response)**을 돌려보냅니다.
+>    - 예: JSON 데이터, HTML 페이지, 상태 코드(200 OK, 404 Not Found)
+> 
+> 3. **숨겨진 핵심 기능들**:
+>    - **라우팅(Routing)**: 요청 경로(`/health`, `/v1/hooks/agent`)에 따라 적절한 핸들러로 분배합니다.
+>    - **인증(Authentication)**: 토큰 검증으로 허가된 요청만 처리합니다.
+>    - **정적 파일 서빙**: 관리자 UI의 HTML/CSS/JS 파일을 제공합니다.
+>    - **WebSocket 업그레이드**: HTTP 연결을 실시간 WebSocket으로 전환시킵니다.
+>    - **에러 처리**: 잘못된 요청에 대해 적절한 에러 메시지를 반환합니다.
+> 
+> **비유**: 입은 단순히 "말하는" 기관이 아니라, **듣고(귀), 맛보고(센서), 씹고(처리), 말하는(출력)** 복합 기관입니다!
+
+> [!NOTE]
 > **🛠️ VS Code 실전 조립 절차**
 > 1.  **파일 생성**: `src/gateway/server-http.ts` 파일을 생성합니다.
 > 2.  **라이브러리 불러오기**: 상단에 `import { Hono } from "hono";`를 입력합니다. 만약 밑줄(Error)이 뜬다면 터미널에서 `pnpm add hono`가 되어있는지 확인하세요.
