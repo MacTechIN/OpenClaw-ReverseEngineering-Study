@@ -730,16 +730,96 @@ src/gateway/
 └── server-channels.ts     # [5] 팔다리 (Limbs): 카톡, 슬랙 같은 실제 도구들을 관리
 ```
 
-#### 2. 똑같이 따라 만드는 순서 (Cloning Order)
-무작정 복사하면 에러가 100개 뜹니다. **의존성(Dependency)** 순서대로 조립해야 합니다.
+### 2-4. [실전 가이드] VS Code에서 5대 핵심 부품 조립하기 (The Assembly Line)
 
-1.  **기초 공사**: `server.ts` (껍데기 만듦)
-2.  **골격 조립**: `server.impl.ts` (핵심 로직 껍데기)
-3.  **호흡기 연결**: `server-http.ts` (Hono 연결)
-4.  **신경망 연결**: `server-ws-runtime.ts` (WebSocket 연결)
-5.  **팔다리 부착**: `server-channels.ts` (Baileys 연결)
+무작정 전체 코드를 복사하면 에러가 100개 넘게 뜹니다. 우리는 **의존성(Dependency)** 순서에 따라, 마치 프라모델을 조립하듯 **"빈 껍데기(Stub)"** 부터 하나씩 만들어 갈 것입니다.
 
-#### 2-3-1. [마음가짐] 코드를 다 쳐야 하나요? (The Mindset)
+> [!TIP]
+> **VS Code 단축키 팁**: `Cmd + N` (Mac) 또는 `Ctrl + N` (Windows)을 누른 후 `Cmd + S` / `Ctrl + S`를 눌러 아래 경로로 저장하세요.
+
+---
+
+#### 📦 부품 1: 안내 데스크 (`src/gateway/server.ts`)
+*   **역할**: 우리 서버의 "공식 연락처"입니다. 외부(CLI/App)에서는 오직 이 파일만 보고 명령을 내립니다.
+*   **VS Code 작업**: `src/gateway/` 폴더에서 `server.ts` 파일을 만듭니다.
+*   **필수 코드 (Skeleton)**:
+    ```typescript
+    // 나중에 실제 구현체(impl)에서 가져와서 밖으로 던져줄 예정입니다.
+    // 지금은 빨간 줄이 뜨겠지만, '구조'만 먼저 잡습니다.
+    export { startGatewayServer } from "./server.impl.js";
+    export type { GatewayServer } from "./server.impl.js";
+    ```
+*   **이해**: "나는 안내원이야. 사장님(impl)이 오시면 바로 연결해줄게!"라고 선언하는 단계입니다.
+
+---
+
+#### 📦 부품 2: 종합 상황실 (`src/gateway/server.impl.ts`)
+*   **역할**: 서버의 모든 기능을 총괄하는 **"뇌(Brain)"** 입니다. 심장박동, 입, 귀, 팔다리를 여기서 다 연결합니다.
+*   **VS Code 작업**: `src/gateway/` 폴더에서 `server.impl.ts` 파일을 만듭니다.
+*   **필수 코드 (Skeleton)**:
+    ```typescript
+    import { narrate } from "../narrator.js";
+
+    export interface GatewayServer { /* 서버의 명함 정보 */ }
+
+    export async function startGatewayServer() {
+        narrate({ who: "startGatewayServer", role: "총사령관", action: "시스템 기동 시작" });
+        // 여기에 앞으로 HTTP, WS, Channel 부품들을 조립할 겁니다.
+        console.log("🚀 Gateway Server is ready!");
+    }
+    ```
+*   **이해**: 모든 부품이 모이는 **"중앙 제어반"**을 설치한 것입니다.
+
+---
+
+#### 📦 부품 3: 서버의 입 (`src/gateway/server-http.ts`)
+*   **역할**: 웹브라우저나 외부 요청을 받는 **"입(Mouth)"** 입니다. (`Hono` 라이브러리 사용)
+*   **VS Code 작업**: `src/gateway/` 폴더에서 `server-http.ts` 파일을 만듭니다.
+*   **필수 코드 (Skeleton)**:
+    ```typescript
+    import { Hono } from "hono";
+
+    export function createHttpServer() {
+        const app = new Hono();
+        app.get("/", (c) => c.text("Hello! This is Gateway."));
+        return app;
+    }
+    ```
+*   **이해**: 외부 사람들과 대화할 수 있는 **"창구"**를 개설한 것입니다.
+
+---
+
+#### 📦 부품 4: 서버의 귀 (`src/gateway/server-ws-runtime.ts`)
+*   **역할**: 실시간으로 데이터를 주고받는 **"귀(Ears)"** 입니다. (WebSocket 처리)
+*   **VS Code 작업**: `src/gateway/` 폴더에서 `server-ws-runtime.ts` 파일을 만듭니다.
+*   **필수 코드 (Skeleton)**:
+    ```typescript
+    export function attachGatewayWsHandlers() {
+        // WebSocket 연결이 들어오면 "누구세요?" 하고 듣는 로직이 들어갑니다.
+        console.log("👂 Listening for real-time messages...");
+    }
+    ```
+*   **이해**: 전화선을 뽑지 않고 계속 들고 있는 **"실시간 통화 대기상태"**를 만든 것입니다.
+
+---
+
+#### 📦 부품 5: 서버의 팔다리 (`src/gateway/server-channels.ts`)
+*   **역할**: 왓츠앱, 슬랙 등으로 직접 메시지를 쏘는 **"팔다리(Limbs)"** 입니다.
+*   **VS Code 작업**: `src/gateway/` 폴더에서 `server-channels.ts` 파일을 만듭니다.
+*   **필수 코드 (Skeleton)**:
+    ```typescript
+    export function createChannelManager() {
+        return {
+            sendMessage: (msg: string) => console.log(`[Limbs] Sending: ${msg}`),
+            connect: () => console.log("[Limbs] Ready to move!")
+        };
+    }
+    ```
+*   **이해**: 실제로 물건을 나르고(메시지 전송) 행동하는 **"실행 부서"**를 만든 것입니다.
+
+
+### 2-5. [마음가짐] 코드를 다 쳐야 하나요? (The Mindset)
+
 
 
 "이 많은 걸 언제 다 치고 앉아있나요? 그러다가 지쳐서 포기하면 어떡하죠?"
@@ -758,7 +838,8 @@ src/gateway/
     *   "이 코드 500줄 다 설명해줘" (X) -> 너무 많아서 눈에 안 들어옵니다.
     *   **"이 파일에서 가장 중요한 함수 3개만 꼽아서, 각각 무슨 일을 하는지 한 줄로 요약해줘"** (O) -> 핵심 뼈대만 머리에 넣으세요.
 
-#### 2-3-2. [준비물] 해설자 모드 장착하기 (The Narrator)
+### 2-6. [준비물] 해설자 모드 장착하기 (The Narrator)
+
 
 
 "작동하는 코드가 아니라, **스스로 설명하는 코드**를 만드세요."
@@ -796,10 +877,18 @@ export function narrate(info: {
 
 ---
 
-### 2-4. [확대 분석] 서버 진입점 생성 (`src/gateway/server.ts`) - **[단계 1: 기초 공사/얼굴]**
+### 2-7. [확대 분석] 서버 진입점 생성 (`src/gateway/server.ts`) - **[단계 1: 기초 공사/얼굴]**
+
 
 
 가장 먼저 이 파일을 만듭니다. 이 파일은 서버의 **"안내 데스크(Front Desk)"** 입니다.
+
+> [!NOTE]
+> **🛠️ VS Code 실전 조립 절차**
+> 1.  **파일 생성**: 탐색기(Explorer)에서 `src/gateway` 폴더를 우클릭하고 `New File`을 선택합니다.
+> 2.  **이름 입력**: `server.ts`를 입력하고 엔터를 칩니다.
+> 3.  **코드 작성**: 아래의 Export 문장들을 입력하여 외부와 내부를 연결합니다.
+
 
 #### 2-1-1. [초정밀 해부도] Front Desk Map
 오시다시피 이 파일은 **아무런 로직이 없습니다.** 오직 다른 파일로 연결만 해줍니다. 이것을 디자인 패턴에서는 **퍼사드 패턴(Facade Pattern)** 이라고 합니다.
@@ -966,11 +1055,19 @@ export * from "./core-v2.js"; // v1 -> v2 로 숫자 하나만 바꿨습니다.
 
 ---
 
-### 2-5. [확대 분석] 서버 뇌 구현 (`src/gateway/server.impl.ts`) - **[단계 2: 골격 조립]**
+### 2-8. [확대 분석] 서버 뇌 구현 (`src/gateway/server.impl.ts`) - **[단계 2: 골격 조립]**
+
 
 
 안내 데스크(`server.ts`)의 문을 열고 들어오셨군요. 환영합니다.
 이곳은 OpenClaw(Moltbot) 시스템의 가장 깊숙한 곳, **"종합 상황실(NASA Control Room)"** 입니다.
+
+> [!NOTE]
+> **🛠️ VS Code 실전 조립 절차**
+> 1.  **파일 생성**: `src/gateway/server.impl.ts` 파일을 생성합니다.
+> 2.  **자동 완성 활용**: `interface`나 `function`을 칠 때 VS Code가 제안하는 코드 힌트를 적극적으로 활용하세요.
+> 3.  **임포트 체크**: 상단에 있는 `narrate` 함수가 정확한 경로(`../narrator.js`)에서 오고 있는지 확인하세요. (ESM 방식이므로 `.js` 확장자를 붙이는 것이 포인트입니다!)
+
 
 눈앞에 펼쳐진 **약 600줄의 코드**가 위압적으로 느껴지십니까? 당연합니다.
 이곳은 단순한 코드가 아닙니다. 서버의 오감을 깨우고, 인공지능 두뇌를 연결하고, 전 세계와 통신하는 신경망을 지휘하는 **"사령부"** 이기 때문입니다.
@@ -1269,10 +1366,18 @@ export async function startGatewayServer(port = 18789, opts: GatewayServerOption
 
 ---
 
-### 2-6. 서버의 입, HTTP 서버 (`src/gateway/server-http.ts`) - **[단계 3: 호흡기 연결]**
+### 2-9. 서버의 입, HTTP 서버 (`src/gateway/server-http.ts`) - **[단계 3: 호흡기 연결]**
+
 
 
 안내 데스크(`server.ts`)와 사령부(`server.impl.ts`)가 준비되었습니다. 하지만 아직 이 서버는 **벙어리**입니다. 외부에서 말을 걸 수도, 대답할 수도 없습니다. 이제 **"입(Mouth)"** 을 달아줄 차례입니다.
+
+> [!NOTE]
+> **🛠️ VS Code 실전 조립 절차**
+> 1.  **파일 생성**: `src/gateway/server-http.ts` 파일을 생성합니다.
+> 2.  **라이브러리 불러오기**: 상단에 `import { Hono } from "hono";`를 입력합니다. 만약 밑줄(Error)이 뜬다면 터미널에서 `pnpm add hono`가 되어있는지 확인하세요.
+> 3.  **테스트**: 서버를 켠 후 브라우저 주소창에 `http://localhost:3000`을 입력해 "Hello!"가 나오는지 확인하는 것이 최종 목표입니다.
+
 
 #### 2-3-1. [해부학] 입의 구조 (The Anatomy of the Mouth)
 이 파일은 **Hono**라는 초고속 혀(Language)를 사용합니다.
@@ -1348,10 +1453,18 @@ export async function createHttpServer(params: any) {
 
 ---
 
-### 2-7. 서버의 귀, WebSocket 서버 (`src/gateway/server-ws-runtime.ts`) - **[단계 4: 신경망 연결]**
+### 2-10. 서버의 귀, WebSocket 서버 (`src/gateway/server-ws-runtime.ts`) - **[단계 4: 신경망 연결]**
+
 
 
 HTTP가 "똑똑, 거기 누구 있나요?" 하고 묻는 **단발성 대화**라면, WebSocket은 전화선을 뽑지 않고 계속 들고 있는 **실시간 통화**입니다. 이것은 봇의 **"신경망(Nervous System)"** 이자 **"귀(Ears)"** 입니다.
+
+> [!NOTE]
+> **🛠️ VS Code 실전 조립 절차**
+> 1.  **파일 생성**: `src/gateway/server-ws-runtime.ts` 파일을 생성합니다.
+> 2.  **실시간 모니터링**: 이 파일이 완성되면, 브라우저 관리자 페이지에서 실시간 로그가 올라오는 것을 볼 수 있습니다.
+> 3.  **주의**: WebSocket은 연결이 끊기면 다시 연결해주는 로직이 중요합니다. 나중에 `truncateCloseReason` 같은 도구가 쓰이는 곳이 바로 여기입니다.
+
 
 #### 2-4-1. [해부학] 귀의 구조
 이 파일은 `ws` 라이브러리를 사용하여 실시간 통신을 처리합니다.
@@ -1390,10 +1503,18 @@ WebSocket은 서버가 **먼저** 사용자에게 말을 걸 수 있게 해줍�
 
 ---
 
-### 2-8. 서버의 팔다리, Channel Manager (`src/gateway/server-channels.ts`) - **[단계 5: 팔다리 부착]**
+### 2-11. 서버의 팔다리, Channel Manager (`src/gateway/server-channels.ts`) - **[단계 5: 팔다리 부착]**
+
 
 
 이제 입과 귀가 생겼으니, 실제로 외부와 소통할 **"팔다리(Limbs)"** 를 움직여야 합니다. WhatsApp, Slack 같은 다양한 메신저들을 총괄 관리하는 곳입니다.
+
+> [!NOTE]
+> **🛠️ VS Code 실전 조립 절차**
+> 1.  **파일 생성**: `src/gateway/server-channels.ts` 파일을 생성합니다.
+> 2.  **채널 확장**: 나중에 Slack이나 Telegram을 추가하고 싶을 때도 바로 이 파일에 "새로운 다리"를 다는 방식으로 확장하면 됩니다.
+> 3.  **연결**: 이곳에서 만들어진 `manager`가 `server.impl.ts`로 전달되어 시스템 전체의 행동을 지시하게 됩니다.
+
 
 #### 2-5-1. [해부학] 팔다리 제어실
 *   **역할**: "카톡 담당자(WhatsApp)", "슬랙 담당자(Slack)"를 소집하고 관리합니다.
