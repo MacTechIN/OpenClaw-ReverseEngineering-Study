@@ -85,7 +85,10 @@
 
 ---
 
-## 0. 기술 스택 분석 (Technology Stack Analysis)
+---
+
+## Chapter 0. 기술 스택 분석 (Technology Stack Analysis)
+
 
 이 앱(**OpenClaw**)은 단순한 챗봇이 아닙니다. 다양한 메신저(WhatsApp, Slack 등)와 AI 모델을 연결하는 **Gateway Platform(게이트웨이 플랫폼)** 으로서, AI 에이전트(Agent) 생태계의 혁신을 이끌며 2026년 1월 초급속도로 확산되고 있는 업계 최대 관심사 중 하나가 되었습니다.
 
@@ -102,8 +105,8 @@
 | **UI Framework** | **Lit** + **Vite** | 3.3.2 | React보다 가벼운 Web Components 표준 기반. 봇 제어 패널용으로 가볍고 빠름. |
 | **Database/State** | **SQLite** | - | 로컬 임베딩 벡터 저장 및 경량 상태 관리에 적합. |
 
-> [!TIP]
-> **📚 [용어 미니 사전] 이게 도대체 무슨 말인가요?**
+### 0-1. 📚 [용어 미니 사전] 이게 도대체 무슨 말인가요?
+
 >
 > 표에 나온 외계어들을 시원하게 풀어드립니다.
 >
@@ -124,7 +127,8 @@
 > **💬 코치 코멘트(Sam LEE)**:
 > "용어가 계속 나오지만, 깊게 파고들지 말고 **'아, 대충 이런 거구나'** 하고 넘어가세요. 계속 새로운 개념들과 경험이 쌓이다 보면, 이 낯선 용어들은 자연히 여러분의 몸속에 녹아들어 **'실력'** 이라는 형태로 나타나게 되어 있습니다. 믿고 따라오세요."
 
-### 🛠️ [상세 가이드] 각 기술 스택 설치 및 설정 방법
+### 0-2. 🛠️ [상세 가이드] 각 기술 스택 설치 및 설정 방법
+
 
 초보자도 따라 할 수 있도록 각 도구의 설치 방법을 정리했습니다.
 
@@ -289,7 +293,8 @@
     
     ---
 
-## 1. 프로젝트 초기화 (Foundation Setup)
+## Chapter 1. 프로젝트 기초 공사 (Foundation Setup)
+
 
 가장 먼저 튼튼한 기반을 다집니다. 이 프로젝트는 모든 구성 요소(서버, 앱, 플러그인)가 하나의 저장소에 있는 **Monorepo** 구조를 따릅니다. (모노레포가 뭔지 까먹으셨다면? 👉 상단 **'용어 미니 사전 2번'** 을 다시 보고 오세요!)
 
@@ -332,7 +337,8 @@
 
     ---
     
-    ### 🚨 [초보자를 위한 가이드] 왜 npm 대신 pnpm을 쓰는가? (The Revolution of pnpm)
+    #### 1-1-1. 🚨 [배경 지식] 왜 npm 대신 pnpm을 쓰는가? (The Revolution of pnpm)
+
     
     "npm도 잘 되는데 굳이 왜 이걸 또 깔아야 하나요?" 라는 질문은 매우 타당합니다. 하지만 OpenClaw(Moltbot) 같은 대규모 프로젝트(Monorepo)에서 npm을 쓰면 **재앙**이 닥칩니다.
     
@@ -351,7 +357,8 @@
     
     ---
 
-    ### 🛑 [여기서 잠깐] npm이 도대체 뭔가요? (What is npm?)
+    #### 1-1-2. 🛑 [보충 수업] npm이 도대체 뭔가요? (What is npm?)
+
 
     "개발자들은 왜 자꾸 `npm npm` 거리는 걸까요?"
 
@@ -401,7 +408,8 @@
 
 ---
 
-### 🚨 [초보자를 위한 가이드] 왜 코드를 짜기 전에 `tsconfig.json` 부터 건드리는가?
+### 1-2. 🚨 [심층 이해] 왜 코드를 짜기 전에 tsconfig.json 부터 건드리는가?
+
 
 많은 분들이 *"일단 `server.ts` 파일 만들고 코드부터 치면 안 되나요?"* 라고 묻습니다. 결론부터 말하면, **OpenClaw(Moltbot) 같은 거대한 프로젝트에서는 불가능합니다.** 그 이유를 아주 쉽게 설명해 드립니다.
 
@@ -424,7 +432,8 @@
     
     ---
 
-    ### 🛠️ [실전 가이드] 내 작은 프로젝트에서 `tsconfig.json` 만들기 (자동 vs 수동)
+    ### 1-3. 🛠️ [실전 가이드] tsconfig.json 설정 및 초정밀 분석
+
     
     "Moltbot은 대형 프로젝트라서 이미 있었지만, **맨땅에서 시작하는 나만의 작은 앱**은 어떻게 하죠?"
     
@@ -457,7 +466,8 @@
 
     ---
 
-5.  **TypeScript 설정 (`tsconfig.json`) - 아키텍처 심층 분석**:
+#### 1-3-1. TypeScript 설정 (`tsconfig.json`) - 아키텍처 심층 분석
+    
 
     이 설정 파일은 프로젝트의 **"법전(宪法)"**과 같습니다. 단순한 설정이 아니라, 이 프로젝트가 **모던 자바스크립트 생태계(ESM)** 에서 어떻게 살아남을지를 정의합니다.
 
@@ -516,7 +526,8 @@
 
 
 
-### 🚀 1장 요약: "환경 세팅" 퀵 마스터 리스트 (The Master Commands)
+### 1-4. 🚀 1장 요약: "환경 세팅" 퀵 마스터 리스트 (The Master Commands)
+
 
 지금까지 **1장: 프로젝트 초기화**에서 수행한 모든 단계를 한눈에 정리했습니다. 터미널을 열고 이 순서대로만 진행하셨다면, 여러분의 컴퓨터는 이제 강력한 통역 서버를 가동할 완벽한 준비를 마친 상태입니다.
 
@@ -575,11 +586,13 @@ npx tsc --init
 ---
 
 
-## 2. Gateway Server 구축 (The Nervous System)
+## Chapter 2. Gateway Server 구축 (The Nervous System)
+
 
 Gateway는 단순한 서버가 아닙니다. 모든 데이터(메시지, 명령)가 지나가는 **고속도로이자, 시스템의 중추 신경망**입니다.
 
-### 🛑 도대체 "Gateway Server"가 뭔가요? (What is a Gateway Server?)
+### 2-1. 🛑 기초지식: 도대체 "Gateway Server"가 뭔가요? (What is a Gateway Server?)
+
 
 "그냥 서버라고 하면 되지, 왜 게이트웨이라는 어려운 말을 쓰나요?"
 
@@ -599,7 +612,8 @@ Gateway는 단순한 서버가 아닙니다. 모든 데이터(메시지, 명령)
 ---
 
 
-### 2-0. [심층 분석] 왜 굳이 "Gateway" 구조를 선택했는가? (Developer's Intent)
+### 2-2. [설계 철학] 왜 굳이 "Gateway" 구조를 선택했는가? (Developer's Intent)
+
 
 개발자가 단순히 API 서버를 만들지 않고 `Gateway` 패턴을 도입한 데에는 명확한 **건축학적 의도(Architectural Intent)** 가 있습니다.
 
@@ -670,7 +684,8 @@ Gateway는 단순한 서버가 아닙니다. 모든 데이터(메시지, 명령)
 3.  **상태 및 세션 중앙 관리 (Centralized State)**:
     *   LLM은 "기억"이 없습니다. 사용자의 대화 맥락(Context)을 저장하고, 적절한 시점에 잘라서(Pruning) LLM에 넣어주는 **기억 관리자 역할**을 Gateway가 중앙 통제합니다.
 
-### 2-0-1. [비교 분석] 게이트웨이 말고 다른 방법은 없나요? (Architectural Alternatives)
+#### 2-2-1. [비교 분석] 게이트웨이 말고 다른 방법은 없나요? (Architectural Alternatives)
+
 
 "꼭 이렇게 복잡하게 해야 하나요? 더 쉬운 방법은 없나요?"
 
@@ -688,7 +703,8 @@ Gateway는 단순한 서버가 아닙니다. 모든 데이터(메시지, 명령)
 *   **방식**: 모든 손님(메시지)은 일단 공항(Gateway)으로 옵니다. 공항에서 검역(Validation)하고, 표준 비자(Standardized Event)를 발급해서 입국시킵니다.
 *   **승리 요인**: AI는 "공항에서 온 손님"만 상대하면 됩니다. 그 손님이 미국에서 왔든 달나라에서 왔든 신경 쓸 필요가 없습니다. **이것이 100년 가는 소프트웨어의 비밀입니다.**
 
-### 2-0-2. [구조도] Gateway 해부도 및 조립 순서 (Gateway Anatomy)
+### 2-3. Gateway 시스템 구조 및 조립 전략 (Gateway Anatomy)
+
 
 "파일이 너무 많아요! 어디서부터 건드려야 하죠?"
 걱정 마세요. 100개가 넘는 파일 중, **핵심 장기(Core Organs)** 5개만 알면 살아있는 서버를 만들 수 있습니다.
@@ -712,7 +728,8 @@ src/gateway/
 4.  **신경망 연결**: `server-ws-runtime.ts` (WebSocket 연결)
 5.  **팔다리 부착**: `server-channels.ts` (Baileys 연결)
 
-#### 2-0-3. [초심자를 위한 멘탈 관리] 코드를 다 쳐야 하나요? (The Mindset)
+#### 2-3-1. [마음가짐] 코드를 다 쳐야 하나요? (The Mindset)
+
 
 "이 많은 걸 언제 다 치고 앉아있나요? 그러다가 지쳐서 포기하면 어떡하죠?"
 
@@ -730,7 +747,8 @@ src/gateway/
     *   "이 코드 500줄 다 설명해줘" (X) -> 너무 많아서 눈에 안 들어옵니다.
     *   **"이 파일에서 가장 중요한 함수 3개만 꼽아서, 각각 무슨 일을 하는지 한 줄로 요약해줘"** (O) -> 핵심 뼈대만 머리에 넣으세요.
 
-#### 2-0-4. [준비물] 해설자 모드 장착하기 (The Narrator)
+#### 2-3-2. [준비물] 해설자 모드 장착하기 (The Narrator)
+
 
 "작동하는 코드가 아니라, **스스로 설명하는 코드**를 만드세요."
 
@@ -767,7 +785,8 @@ export function narrate(info: {
 
 ---
 
-### 2-1. [확대 분석] 서버 진입점 생성 (`src/gateway/server.ts`) - **[단계 1: 기초 공사/얼굴]**
+### 2-4. [확대 분석] 서버 진입점 생성 (`src/gateway/server.ts`) - **[단계 1: 기초 공사/얼굴]**
+
 
 가장 먼저 이 파일을 만듭니다. 이 파일은 서버의 **"안내 데스크(Front Desk)"** 입니다.
 
@@ -933,7 +952,8 @@ export * from "./core-v2.js"; // v1 -> v2 로 숫자 하나만 바꿨습니다.
 
 ---
 
-### 2-2. [확대 분석] 서버 뇌 구현 (`src/gateway/server.impl.ts`) - **[단계 2: 골격 조립]**
+### 2-5. [확대 분석] 서버 뇌 구현 (`src/gateway/server.impl.ts`) - **[단계 2: 골격 조립]**
+
 
 안내 데스크(`server.ts`)의 문을 열고 들어오셨군요. 환영합니다.
 이곳은 OpenClaw(Moltbot) 시스템의 가장 깊숙한 곳, **"종합 상황실(NASA Control Room)"** 입니다.
@@ -1232,7 +1252,8 @@ export async function startGatewayServer(port = 18789, opts: GatewayServerOption
 
 ---
 
-### 2-3. 서버의 입, HTTP 서버 (`src/gateway/server-http.ts`) - **[단계 3: 호흡기 연결]**
+### 2-6. 서버의 입, HTTP 서버 (`src/gateway/server-http.ts`) - **[단계 3: 호흡기 연결]**
+
 
 안내 데스크(`server.ts`)와 사령부(`server.impl.ts`)가 준비되었습니다. 하지만 아직 이 서버는 **벙어리**입니다. 외부에서 말을 걸 수도, 대답할 수도 없습니다. 이제 **"입(Mouth)"** 을 달아줄 차례입니다.
 
@@ -1310,7 +1331,8 @@ export async function createHttpServer(params: any) {
 
 ---
 
-### 2-4. 서버의 귀, WebSocket 서버 (`src/gateway/server-ws-runtime.ts`) - **[단계 4: 신경망 연결]**
+### 2-7. 서버의 귀, WebSocket 서버 (`src/gateway/server-ws-runtime.ts`) - **[단계 4: 신경망 연결]**
+
 
 HTTP가 "똑똑, 거기 누구 있나요?" 하고 묻는 **단발성 대화**라면, WebSocket은 전화선을 뽑지 않고 계속 들고 있는 **실시간 통화**입니다. 이것은 봇의 **"신경망(Nervous System)"** 이자 **"귀(Ears)"** 입니다.
 
@@ -1351,7 +1373,8 @@ WebSocket은 서버가 **먼저** 사용자에게 말을 걸 수 있게 해줍�
 
 ---
 
-### 2-5. 서버의 팔다리, Channel Manager (`src/gateway/server-channels.ts`) - **[단계 5: 팔다리 부착]**
+### 2-8. 서버의 팔다리, Channel Manager (`src/gateway/server-channels.ts`) - **[단계 5: 팔다리 부착]**
+
 
 이제 입과 귀가 생겼으니, 실제로 외부와 소통할 **"팔다리(Limbs)"** 를 움직여야 합니다. WhatsApp, Slack 같은 다양한 메신저들을 총괄 관리하는 곳입니다.
 
@@ -1391,7 +1414,8 @@ export function createChannelManager() {
 
 ---
 
-## 3. WhatsApp 채널 연결 (The Sense of Sight/Sound)
+## Chapter 3. WhatsApp 채널 연결 (The Sense of Sight/Sound)
+
 
 봇이 세상을 인식하는 **"눈과 귀"** 입니다. 여기서는 **WhatsApp**을 예로 들어, 외부 시스템과 어떻게 대화하는지 파헤쳐 보겠습니다.
 
@@ -1462,7 +1486,8 @@ export async function startWhatsAppChannel(gateway: any) {
 
 ---
 
-## 4. AI 에이전트 엔진 (The Brain)
+## Chapter 4. AI 에이전트 엔진 (The Brain)
+
 
 이 앱의 지능을 담당하는 **"뇌(Brain)"** 입니다. 단순히 앵무새처럼 대답하는 것이 아니라, 스스로 생각하고 도구를 쓰는 **AI 에이전트(Agent)** 로서의 핵심 로직을 파헤쳐 봅니다.
 
@@ -1548,7 +1573,8 @@ AI 에이전트를 개발하다 보면 가끔 고집을 피우거나 이상한 �
 
 ---
 
-## 5. UI 제어 패널 (The Face)
+## Chapter 5. UI 제어 패널 (The Face)
+
 
 관리자가 봇을 제어하고 대화 로그를 실시간으로 확인하는 **"얼굴(Face)"** 입니다.
 
@@ -1617,7 +1643,8 @@ export class MoltbotApp extends LitElement {
 
 ---
 
-## 6. 결론 및 클론 전략 (Roadmap to Success)
+## Chapter 6. 결론 및 클론 전략 (Roadmap to Success)
+
 
 지금까지 우리는 OpenClaw(Moltbot)의 거대한 설계도를 **준비 -> 기초 -> 장기 -> 뇌 -> 얼굴** 순으로 해부해 보았습니다. 이 거대한 코끼리를 한 번에 삼키는 것은 불가능합니다. 하지만 **"부위별로 조립"** 하면 누구나 자신만의 에이전트를 가질 수 있습니다.
 
