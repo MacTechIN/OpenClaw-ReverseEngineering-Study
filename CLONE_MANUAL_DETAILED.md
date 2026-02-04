@@ -1391,7 +1391,8 @@ export async function startGatewayServer(
 3.  **스텝 3: 서브시스템 연결 (Connectivity)**
     > "이제 `createHttpServer`와 `createWebSocketServer`를 호출하는 코드를 중간에 넣어줘."
 
-**핵심**: AI에게 한 번에 "이거 다 만들어"라고 하지 말고, **"조립 설명서의 한 문장"** 씩 던지세요. 그것이 진짜 엔지니어의 실력입니다.
+> [!IMPORTANT]
+> **핵심**: AI에게 한 번에 "이거 다 만들어"라고 하지 말고, **"조립 설명서의 한 문장"** 씩 던지세요. 그것이 진짜 엔지니어의 실력입니다.
 
 #### 2-2-4. [TS 문법 심화] 'GatewayServer' 타입 완전 해부
 
