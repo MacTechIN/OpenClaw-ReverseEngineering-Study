@@ -360,6 +360,12 @@
     1.  먼저 컴퓨터 하드디스크(C드라이브 혹은 홈 디렉토리)에 `Workspace`라는 이름의 폴더를 만드세요.
     2.  그 `Workspace` 폴더 안에 들어가서, 다시 `openclaw-lab`이라는 새 폴더를 만듭니다.
         *   구조: `내 컴퓨터` -> `Workspace` -> `openclaw-lab`
+    
+    ````carousel
+    ![Windows 터미널 구조 (C:\Workspace\openclaw-lab)](/Users/sl/.gemini/antigravity/brain/3a03bc00-8039-4d00-91a0-4805dd698fa4/windows_workspace_path_1770239153458.png)
+    <!-- slide -->
+    ![Mac 터미널 구조 (~/Workspace/openclaw-lab)](/Users/sl/.gemini/antigravity/brain/3a03bc00-8039-4d00-91a0-4805dd698fa4/mac_workspace_path_1770239167630.png)
+    ````
     3.  터미널에서 해당 폴더로 이동한 뒤, 정보를 기입합니다.
         ```bash
         cd ~/Workspace/openclaw-lab
