@@ -349,6 +349,7 @@
 
     #### 4. 사용 방법 (How?)
     터미널에 주문을 외우면 됩니다.
+    ![터미널 패키지 설치 예시](/Users/sl/.gemini/antigravity/brain/3a03bc00-8039-4d00-91a0-4805dd698fa4/terminal_install_demo_1770239070407.png)
     *   `npm install [부품이름]`: "이 부품 우리 집(프로젝트)에 배달해 줘."
     *   `pnpm install`: "이 부품 배달해 주는데, 아까 말했듯이 더 효율적으로(도서관 방식) 배달해 줘."
     
