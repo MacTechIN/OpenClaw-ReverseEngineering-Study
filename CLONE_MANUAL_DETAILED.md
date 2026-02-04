@@ -988,18 +988,21 @@ export * from "./core-v2.js"; // v1 -> v2 로 숫자 하나만 바꿨습니다.
 *   **3. 내부 장기 (Internal Organs)**:
     *   `./server-*`: HTTP, WS, Channel 등 서버의 실제 부품들.
 
-**💡 [핵심 전략] "가짜로 채워라 (Fake it till you make it)"**
-70개 파일을 다 구현하다간 지쳐 떨어집니다. **"빈 파일 전략(Stubbing)"** 을 쓰세요.
+> [!IMPORTANT]
+> **💡 [핵심 전략] "가짜로 채워라 (Fake it till you make it)"**
+>
+> 70개 파일을 다 구현하다간 지쳐 떨어집니다. **"빈 파일 전략(Stubbing)"** 을 쓰세요.
+>
+> 1.  **빨간 줄 없애기 게임**: `server.impl.ts`를 복사해서 붙여넣으면 온통 빨간 줄(에러)입니다.
+> 2.  **빈 파일 생성**: 에러가 나는 경로(예: `../infra/heartbeat.ts`)에 파일을 만듭니다.
+> 3.  **가짜 수출(Export)**: 함수 내용을 비워두고 `export`만 하세요.
+>     ```typescript
+>     // ../infra/heartbeat.ts
+>     // 껍데기만 만듭니다. 내용은 나중에 채웁니다.
+>     export function startHeartbeatRunner() { console.log("Heartbeat started (fake)"); }
+>     ```
+> 4.  **컴파일 성공**: 빨간 줄이 다 사라지면, 서버는 켜집니다. (물론 아무 기능도 안 하겠지만, 골격은 완성된 겁니다.)
 
-1.  **빨간 줄 없애기 게임**: `server.impl.ts`를 복사해서 붙여넣으면 온통 빨간 줄(에러)입니다.
-2.  **빈 파일 생성**: 에러가 나는 경로(예: `../infra/heartbeat.ts`)에 파일을 만듭니다.
-3.  **가짜 수출(Export)**: 함수 내용을 비워두고 `export`만 하세요.
-    ```typescript
-    // ../infra/heartbeat.ts
-    // 껍데기만 만듭니다. 내용은 나중에 채웁니다.
-    export function startHeartbeatRunner() { console.log("Heartbeat started (fake)"); }
-    ```
-4.  **컴파일 성공**: 빨간 줄이 다 사라지면, 서버는 켜집니다. (물론 아무 기능도 안 하겠지만, 골격은 완성된 겁니다.)
 
 #### 2-2-1. [상세 분석] 함수 명예의 전당 (Function Hall of Fame)
 
