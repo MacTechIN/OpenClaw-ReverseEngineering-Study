@@ -212,8 +212,16 @@
     > ---
     >
     > **1. 폴더 만들기 (집터 닦기)**
-    > *   바탕화면이나 편한 곳에 새 폴더를 만드세요. 이름은 `openclaw-lab` 정도로 지어볼까요?
-    > *   이 폴더가 앞으로 우리의 **베이스캠프**가 됩니다.
+    > *   먼저 컴퓨터 하드디스크(C드라이브 혹은 홈 디렉토리)에 `Workspace`라는 이름의 폴더를 만드세요.
+    > *   그 `Workspace` 폴더 안에 들어가서, 다시 `openclaw-lab`이라는 새 폴더를 만듭니다.
+    >     *   구조: `내 컴퓨터` -> `Workspace` -> `openclaw-lab`
+    > *   이 `openclaw-lab` 폴더가 앞으로 우리의 **베이스캠프**가 됩니다.
+    >
+    >     > [!TIP]
+    >     > **💡 [Coach's Tip] 왜 굳이 `Workspace` 폴더를 만드나요?**
+    >     >
+    >     > 개발을 하다 보면 "어? 제 파일 어디 갔죠?" 하고 길을 잃는 경우가 정말 많습니다.
+    >     > 윈도우(C드라이브) 쓰시는 분, 맥(홈) 쓰시는 분 모두 **`Workspace`라는 공통된 약속 장소**를 정해두면, 나중에 "경로를 못 찾겠어요" 같은 문제를 99% 예방할 수 있습니다. 이것은 전 세계 개발자들의 **'국룰(불문율)'** 같은 습관입니다.
     >
     > **2. VSCode 열기 (입주)**
     > *   VSCode를 실행합니다.
@@ -283,6 +291,22 @@
 ### 1-1. 환경 설정 (Micro-Process)
 
 1.  **Node.js 설치**: `v22.12.0` 이상 필수.
+    *   **설명**: Node.js는 자바스크립트 실행기로, 건설 현장의 **작업자**와 같은 역할을 합니다. 최신 LTS(Long Term Support, 장기 지원) 버전을 사용하는 이유는 **비동기 I/O(입출력)** 처리가 핵심인 게이트웨이 서버에 최적화되어 있기 때문입니다.
+    *   **설치 방법 (OS별 가이드)**:
+        *   **🪟 Windows**: [공식 홈페이지](https://nodejs.org/) (https://nodejs.org/) 에서 **LTS 버전(v22.x)** 을 다운로드하여 설치합니다. (`Next`만 계속 누르면 됩니다)
+        *   **🍎 Mac**: 터미널에 `brew install node@22` 입력. (Homebrew가 없다면 [여기](https://brew.sh/index_ko) (https://brew.sh/index_ko) 참조)
+        *   **🐧 Linux**: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`
+
+
+    > [!TIP]
+    > **🎓 [개념 수업] 비동기 I/O (Asynchronous I/O)가 뭔가요?**
+    >
+    > **"맛집 웨이터의 서빙 방식"** 으로 이해하면 쉽습니다.
+    >
+    > *   **동기(Synchronous = Blocking)**: 웨이터가 손님 1명에게 주문을 받습니다. 손님이 "음... 뭐 먹지?" 하고 고민하는 5분 동안 웨이터는 **아무것도 안 하고 옆에 서 있습니다.** 다른 손님들은 기다리다 지쳐 나갑니다.
+    > *   **비동기(Asynchronous = Non-Blocking)**: 웨이터가 주문을 받다가 손님이 고민하면 **"결정되시면 벨 눌러주세요"** 하고 **다른 테이블로 가서 일을 합니다.** 그러다 벨이 울리면(이벤트 발생) 다시 와서 주문을 받습니다.
+    >
+    > **Why?**: OpenClaw 게이트웨이는 수천 명의 사용자가 동시에 메시지를 보냅니다. 한 명 메시지 처리하느라 다른 사람들을 기다리게 하면 안 되겠죠? 그래서 Node.js의 비동기 방식이 필수입니다.
 2.  **pnpm 설치**: `npm install -g pnpm@10.23.0`.
 
     ---
@@ -1075,159 +1099,396 @@ export async function startGatewayServer(port = 18789, opts: GatewayServerOption
 
 ### 2-3. 서버의 입, HTTP 서버 (`src/gateway/server-http.ts`) - **[단계 3: 호흡기 연결]**
 
----
+안내 데스크(`server.ts`)와 사령부(`server.impl.ts`)가 준비되었습니다. 하지만 아직 이 서버는 **벙어리**입니다. 외부에서 말을 걸 수도, 대답할 수도 없습니다. 이제 **"입(Mouth)"** 을 달아줄 차례입니다.
 
-## 3. WhatsApp 채널 연결 (The Sense of Sight/Sound)
+#### 2-3-1. [해부학] 입의 구조 (The Anatomy of the Mouth)
+이 파일은 **Hono**라는 초고속 혀(Language)를 사용합니다.
 
-봇이 세상을 인식하는 "눈과 귀"입니다. 여기서는 **WhatsApp**을 예로 듭니다.
+*   **역할**: 들어오는 모든 HTTP 요청(`GET`, `POST`)을 듣고, 적절한 부서로 토스합니다.
+*   **핵심 부품**:
+    *   **Health Check**: "살아있니?" (`/health`) -> "응" (200 OK)
+    *   **Webhooks**: "슬랙에서 메시지 왔어!" (`/v1/hooks/...`) -> 채널 매니저에게 전달
+    *   **UI Assets**: "관리자 화면 보여줘" (`/ui`) -> HTML 파일 서빙
 
-### 3-1. WhatsApp 어댑터 구현 (`src/channels/whatsapp.ts`)
-
-*   **코드의 역할**: Baileys 라이브러리를 사용하여 실제 WhatsApp 서버와 암호화된 통신을 수행하고, 받은 메시지를 Gateway가 이해할 수 있는 공통 포맷으로 변환(Normalize)합니다.
-*   **구현 코드**:
+#### 2-3-2. [코드 분석] `createHttpServer` (입 만들기)
 
 ```typescript
-// src/channels/whatsapp.ts
-import makeWASocket, { useMultiFileAuthState, DisconnectReason } from "@whiskeysockets/baileys";
+import { Hono } from "hono";
+import { serveStatic } from "@hono/node-server/serve-static";
 
-export async function startWhatsAppChannel(gateway: any) {
-  // 1. 인증 상태(세션) 저장소 (파일 기반)
-  const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+export async function createHttpServer(params: {
+  // 의존성 주입: 이 함수가 작동하기 위해 필요한 다른 부서 연락처들
+  handleHooksRequest: any;  // 외부 훅 처리 담당자
+  controlUiEnabled: boolean; // UI 켤지 말지 여부
+}) {
+  const app = new Hono();
 
-  // 2. 소켓 연결 생성
-  const sock = makeWASocket({
-    auth: state,
-    printQRInTerminal: true, // QR코드를 터미널에 출력하여 로그인
+  // 1. [기초 대사] 생존 신고 (Ping/Pong)
+  // 가장 중요한 기능입니다. "나 살아있어요?"라고 물으면 "Pong" 해줍니다.
+  // 클라우드(AWS, Fly.io)가 서버가 죽었는지 살았는지 찌러볼 때 씁니다.
+  app.get("/health", (c) => c.text("ok"));
+
+  // 2. [목소리] 관리자 UI 서빙
+  // 사용자가 브라우저로 접속하면 이쁜 화면(HTML)을 보여줍니다.
+  if (params.controlUiEnabled) {
+    // "assets 폴더에 있는 파일 좀 보여줘" (정적 파일 서빙)
+    app.use("/ui/*", serveStatic({ root: "./assets" }));
+  }
+
+  // 3. [귀] 외부 훅 듣기 (Listening Hooks)
+  // Slack이나 다른 프로그램이 보내는 데이터를 받습니다.
+  app.all("/v1/hooks/*", async (c) => {
+    return params.handleHooksRequest(c); // 담당자에게 토스!
   });
 
-  // 3. 자격 증명 업데이트 리스너
-  sock.ev.on("creds.update", saveCreds);
+  return { 
+    app, // 완성된 입(Hono App)을 반환
+  };
+}
+```
 
-  // 4. 메시지 수신 리스너
-  sock.ev.on("messages.upsert", async ({ messages }) => {
-    const msg = messages[0];
-    if (!msg.message) return;
+#### 2-3-3. [실습 가이드] 내 손으로 입 달아보기 (Hands-on Stub)
 
-    // Normalization: WhatsApp 고유 포맷 -> Gateway 공통 포맷
-    const normalizedMsg = {
-      id: msg.key.id,
-      from: msg.key.remoteJid,
-      body: msg.message.conversation || msg.message.extendedTextMessage?.text,
-      raw: msg
-    };
+처음부터 완벽한 라우팅을 짤 필요는 없습니다. 일단 **"숨을 쉬는지"** 만 확인합시다.
 
-    // Gateway로 전달
-    gateway.emit("message", normalizedMsg);
+1.  `src/gateway/server-http.ts` 파일을 만드세요.
+2.  아래의 **최소 생존 훈련 코드**를 붙여넣으세요.
+
+```typescript
+import { Hono } from "hono";
+import { narrate } from "../narrator";
+
+export async function createHttpServer(params: any) {
+  const app = new Hono();
+
+  // "심장이 뜁니다."
+  app.get("/", (c) => {
+    narrate({ who: "HTTP", role: "입", action: "숨쉬기(Health Check)" });
+    return c.text("OpenClaw Gateway: Breathing...");
+  });
+
+  return { app };
+}
+```
+
+3.  이제 브라우저를 켜고 `http://localhost:18789` (포트는 설정에 따라 다름)에 접속했을 때, **"OpenClaw Gateway: Breathing..."** 이라는 글자가 보이면 성공입니다! 여러분은 방금 서버에 생명을 불어넣은 것입니다.
+
+---
+
+### 2-4. 서버의 귀, WebSocket 서버 (`src/gateway/server-ws-runtime.ts`) - **[단계 4: 신경망 연결]**
+
+HTTP가 "똑똑, 거기 누구 있나요?" 하고 묻는 **단발성 대화**라면, WebSocket은 전화선을 뽑지 않고 계속 들고 있는 **실시간 통화**입니다. 이것은 봇의 **"신경망(Nervous System)"** 이자 **"귀(Ears)"** 입니다.
+
+#### 2-4-1. [해부학] 귀의 구조
+이 파일은 `ws` 라이브러리를 사용하여 실시간 통신을 처리합니다.
+
+*   **역할**: 웹 대시보드와 서버 사이의 **'핫라인'** 을 개설합니다. 봇이 지금 무슨 생각을 하는지, 로그는 무엇인지 실시간으로 전송합니다.
+*   **핵심 부품**:
+    *   **Heartbeat (생존 신호)**: "아직 전화 안 끊었지?" (주기적 신호 확인)
+    *   **Broadcast (방송)**: "자, 모든 대시보드 집중! 지금 봇이 답장을 보낸다!" (여러 접속자에게 동시 전송)
+
+#### 2-4-2. [코드 분석] `attachGatewayWsHandlers` (귀 달기)
+
+```typescript
+import { WebSocketServer } from "ws";
+
+export function attachGatewayWsHandlers(wss: WebSocketServer) {
+  // 1. [연결 수립] 누군가 전화를 걸어오면(connection 이벤트)
+  wss.on("connection", (ws) => {
+    console.log("☎️ 신경망: 새로운 대시보드가 연결되었습니다.");
+
+    // 2. [말 듣기] 상대방이 메시지를 보내면
+    ws.on("message", (data) => {
+      // 메시지 처리 로직...
+    });
+
+    // 3. [전화 끊기]
+    ws.on("close", () => {
+      console.log("💀 신경망: 연결이 종료되었습니다.");
+    });
   });
 }
 ```
 
-*   **테스트 환경 및 방법**:
-    *   실제 휴대폰 필요. 터미널에 뜨는 QR 코드를 휴대폰의 WhatsApp 앱(Linked Devices)으로 스캔합니다.
-    *   **검증**: `gateway.emit` 부분에 `console.log`를 찍고, 휴대폰에서 봇에게 메시지를 보냈을 때 로그가 찍히는지 확인합니다.
-*   **Why?**:
-    *   **Abstraction (추상화)**: Gateway는 이것이 WhatsApp인지 Slack인지 몰라야 합니다. 오직 `normalizedMsg`만 처리합니다. 그래야 나중에 Telegram, Discord를 추가할 때 Gateway 코드를 수정할 필요가 없습니다.
+#### 2-4-3. [Coach's Tip] 왜 HTTP 말고 WebSocket을 쓰나요?
+여러분, 카톡을 하는데 내가 메시지를 보낼 때까지는 대화창이 안 바뀐다고 상상해 보세요. 상대방이 답장을 보냈는지 확인하려고 계속 '새로고침' 버튼을 눌러야 한다면? 그건 **재앙**입니다. 
+WebSocket은 서버가 **먼저** 사용자에게 말을 걸 수 있게 해줍니다. 봇이 수다쟁이가 되려면 이 신경망이 반드시 필요합니다.
+
+---
+
+### 2-5. 서버의 팔다리, Channel Manager (`src/gateway/server-channels.ts`) - **[단계 5: 팔다리 부착]**
+
+이제 입과 귀가 생겼으니, 실제로 외부와 소통할 **"팔다리(Limbs)"** 를 움직여야 합니다. WhatsApp, Slack 같은 다양한 메신저들을 총괄 관리하는 곳입니다.
+
+#### 2-5-1. [해부학] 팔다리 제어실
+*   **역할**: "카톡 담당자(WhatsApp)", "슬랙 담당자(Slack)"를 소집하고 관리합니다.
+*   **왜 Manager라고 부르나요?**: 손가락 하나하나(채널 하나하나)를 직접 움직이는 게 아니라, **"팔을 움직여!"** 라고 명령을 내리면 내부에서 알아서 조율하기 때문입니다.
+
+#### 2-5-2. [코드 분석] `createChannelManager`
+
+```typescript
+export function createChannelManager() {
+  const channels = new Map(); // 현재 연결된 팔다리 목록
+
+  return {
+    // 모든 팔다리를 출격(Start) 시킵니다.
+    startChannels: async (gateway) => {
+      console.log("🦾 팔다리 부착: WhatsApp 채널을 가동합니다.");
+      // 여기서 실제로 WhatsApp 채널 로직을 불러옵니다.
+    },
+    // 모든 팔다리를 정지(Stop) 시킵니다.
+    stopChannels: async () => {
+      console.log("🧘 팔다리 회수: 모든 연결을 안전하게 종료합니다.");
+    }
+  };
+}
+```
+
+> [!IMPORTANT]
+> **여기까지 오셨다면, 여러분은 서버의 '생물학적 구조'를 모두 완성하신 겁니다.**
+> 1. 안내 데스크(Facacde)
+> 2. 내부 장기(Core Logic)
+> 3. 입(HTTP)
+> 4. 귀(WebSocket)
+> 5. 팔다리(Channel Manager)
+> 
+> 이제 이 유령 서버에 진짜 영혼을 불어넣을 시간입니다. 다음 챕터에서 **[진짜 WhatsApp]** 을 연결해 봅시다!
+
+---
+
+## 3. WhatsApp 채널 연결 (The Sense of Sight/Sound)
+
+봇이 세상을 인식하는 **"눈과 귀"** 입니다. 여기서는 **WhatsApp**을 예로 들어, 외부 시스템과 어떻게 대화하는지 파헤쳐 보겠습니다.
+
+### 3-1. [기술 해부] 왜 Baileys인가? (The Magic of Baileys)
+
+보통 기업들이 봇을 만들 때는 페이스북(Meta)에서 제공하는 공식 "WhatsApp Business API"를 씁니다. 하지만 이건 유료이고, 승인 절차도 까다롭습니다. 
+
+OpenClaw(Moltbot)이 선택한 **Baileys**는 다릅니다.
+*   **원리**: 우리가 브라우저에서 'WhatsApp Web'을 켜서 QR 코드를 찍는 것과 **완전히 똑같은 방식**으로 동작합니다. 
+*   **은유(Metaphor)**: **"투명 인간 브라우저"**. Baileys는 화면이 없는(Headless) 브라우저가 되어, 사용자 대신 키보드를 치고 화면을 읽는 역할을 합니다.
+
+### 3-2. WhatsApp 어댑터 구현 (`src/channels/whatsapp.ts`)
+
+이 코드는 단순한 통신 코드가 아니라, **"이질적인 언어를 통역하는 통역사"** 의 코드입니다.
+
+#### 3-2-1. [코드 분석] `startWhatsAppChannel`
+
+```typescript
+import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
+
+export async function startWhatsAppChannel(gateway: any) {
+  // 1. [기억 장치] 세션 유지 (Session Persistence)
+  // 매번 QR 코드를 찍으면 귀찮겠죠? 로그인 정보를 파일에 저장해둡니다.
+  const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+
+  // 2. [무전기 켜기] 소켓 연결
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: true, // 터미널에 QR 코드를 띄웁니다.
+  });
+
+  // 3. [기억 업데이트] 로그인 정보가 바뀌면(새 토큰 등) 다시 저장합니다.
+  sock.ev.on("creds.update", saveCreds);
+
+  // 4. [경청하기] 새로운 메시지가 도착하면 (Upsert)
+  sock.ev.on("messages.upsert", async ({ messages }) => {
+    const msg = messages[0];
+    if (!msg.message) return; // 내용 없는 메시지는 무시
+
+    // [중요] 데이터 정규화 (Normalization)
+    // WhatsApp 특유의 복잡한 JSON을 Gateway가 이해할 수 있는 단순한 형태로 바꿉니다.
+    const normalizedMsg = {
+      from: msg.key.remoteJid, // 누가 보냈나?
+      text: msg.message.conversation || msg.message.extendedTextMessage?.text, // 뭐라고 했나?
+      timestamp: msg.messageTimestamp
+    };
+
+    // 5. [보고] Gateway 사령부에 알립니다.
+    // "대장님! 밖에서 이런 메시지가 들어왔습니다!"
+    gateway.emit("incoming_message", normalizedMsg);
+  });
+}
+```
+
+#### 3-2-2. [Coach's Tip] 왜 굳이 정규화(Normalization)를 하나요?
+여러분, 지금은 WhatsApp만 연결하지만 나중에 **슬랙(Slack)** 이나 **텔레그램(Telegram)** 을 추가한다고 생각해 보세요. 
+만약 데이터 정규화를 안 하면, 봇의 뇌(AI)는 "이건 WhatsApp 말투네?", "이건 슬랙 말투네?" 하고 매번 다르게 공부해야 합니다. 
+**"어디서 오든 똑같은 형식으로 바꿔준다"** 는 이 원칙 하나가 나중에 여러분의 노가다(?)를 100배 줄여줍니다.
+
+### 3-3. [실습] 진짜 내 폰으로 연결하기
+
+1.  터미널에 `pnpm run dev` (혹은 서버 실행 명령어)를 칩니다.
+2.  터미널에 거대한 **QR 코드**가 나타날 때까지 기다리세요.
+3.  휴대폰에서 **WhatsApp** 앱을 켭니다.
+4.  `설정(Settings)` -> `연결된 기기(Linked Devices)` -> `기기 연결`을 누릅니다.
+5.  터미널의 QR 코드를 스캔하세요.
+6.  이제 봇에게 아무 메시지나 보내보세요. 터미널에 여러분의 메시지가 찍힌다면? **축하합니다! 여러분의 봇은 드디어 눈을 떴습니다.**
 
 ---
 
 ## 4. AI 에이전트 엔진 (The Brain)
 
-이 앱의 지능을 담당합니다. LLM(OpenAI/Anthropic)에게 "생각할 시간"을 주고 "도구"를 쥐어줍니다.
+이 앱의 지능을 담당하는 **"뇌(Brain)"** 입니다. 단순히 앵무새처럼 대답하는 것이 아니라, 스스로 생각하고 도구를 쓰는 **AI 에이전트(Agent)** 로서의 핵심 로직을 파헤쳐 봅니다.
 
-### 4-1. 에이전트 실행기 (`src/agents/pi-embedded-runner.ts`)
+### 4-1. [기술 해부] 에이전트는 일반 챗봇과 무엇이 다른가? (Chatbot vs Agent)
 
-*   **코드의 역할**: 사용자 메시지 + 컨텍스트(이전 대화) + 시스템 프롬프트(너는 누구다)를 합쳐서 LLM에게 보냅니다. LLM이 "파일 읽기 도구를 써줘"라고 하면, 실제로 파일을 읽어서 다시 LLM에게 알려줍니다(**Re-Act 패턴**).
-*   **구현 코드**:
+많은 분이 LLM(ChatGPT 등)을 사용하는 모든 봇을 에이전트라고 부르지만, 기술적으로는 큰 차이가 있습니다.
+
+*   **챗봇 (Chatbot)**: 사용자의 질문에 대해 지식(Knowledge)만으로 대답합니다. 팔다리가 없는 **"천재 박사"** 와 같습니다.
+*   **에이전트 (Agent)**: 질문을 이해한 후, 스스로 컴퓨터의 도구(파일 읽기, 명령어 실행 등)를 사용하여 문제를 해결합니다. 지식과 팔다리를 모두 가진 **"해결사"** 입니다.
+*   **핵심 철학**: **Re-Act (Reasoning + Acting)**. "생각하고, 행동하고, 결과를 관찰하고, 다시 생각하라."
+
+### 4-2. 에이전트 실행기 로직 (`src/agents/pi-embedded-runner.ts`)
+
+이 코드는 LLM에게 **"생각하는 시간"** 과 **"행동할 도구"** 를 쥐어주는 지휘소입니다.
+
+#### 4-2-1. [코드 분석] `runAgent`
 
 ```typescript
-// src/agents/runner.ts
-import { ChatOpenAI } from "@langchain/openai"; // 예시용 라이브러리
+import { ChatOpenAI } from "@langchain/openai"; 
 
-export async function runAgent(message: string, context: any[]) {
-  // 1. 시스템 프롬프트 정의
-  const systemPrompt = `
-    You are Moltbot, a helpful AI assistant.
-    You have access to the following tools:
-    - exec: Run shell commands
-    - read_file: Read file contents
-  `;
+export async function runAgent(userInput: string, chatHistory: any[]) {
+  // 1. [정체성 부여] 시스템 프롬프트 (System Prompt)
+  // 봇에게 "너는 누구고, 어떤 가치관을 가졌는가"를 정의합니다.
+  const systemMessage = {
+    role: "system",
+    content: "너는 Moltbot이야. 리눅스 명령어를 실행하고 파일을 읽을 수 있는 능력이 있어."
+  };
 
-  // 2. LLM 호출
-  const llm = new ChatOpenAI({ modelName: "gpt-4o" });
-  
-  // 3. 메시지 히스토리 조합
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...context,
-    { role: "user", content: message }
-  ];
+  // 2. [기억 소환] 맥락(Context) 구성
+  // 이전 대화 내용을 합쳐서 "우리가 무슨 대화를 하고 있었는지"를 AI에게 알려줍니다.
+  const allMessages = [systemMessage, ...chatHistory, { role: "user", content: userInput }];
 
-  // 4. 추론 및 실행 루프 (The Loop)
-  const response = await llm.call(messages);
-  
-  // 5. 도구 호출 감지 (간소화됨)
-  if (response.content.includes("call: read_file")) {
-    // 도구 실행 로직...
-    const fileContent = "...file content...";
-    // 결과를 다시 LLM에게 피드백 (재귀 호출)
-    return runAgent(`Tool Result: ${fileContent}`, [...messages, response]);
+  // 3. [추론 시작] LLM 호출
+  const response = await llm.generate(allMessages);
+
+  // 4. [행동 판단] 도구 사용 여부 체크
+  // AI가 "파일을 읽어야겠다"라고 판단하면 특수한 메시지를 보냅니다.
+  if (response.tool_calls) {
+    // 실제로 컴퓨터의 파일을 읽거나 명령어를 실행합니다.
+    const toolResult = await executeTool(response.tool_calls);
+    
+    // 결과를 다시 AI에게 알려주고 "자, 이제 어떻게 할래?"라고 다시 묻습니다. (재귀)
+    return runAgent(`도구 실행 결과: ${toolResult}`, [...allMessages, response]);
   }
 
+  // 5. [최종 응답] 사용자에게 대답 전달
   return response.content;
 }
 ```
 
-*   **심층 분석**:
-    *   **Context Window Guard**: LLM은 기억 용량(Context Window)에 한계가 있습니다. 따라서 무한정 대화를 저장할 수 없습니다. `pi-embedded-runner.ts`에는 오래된 대화를 요약하거나 삭제하는 **Pruning/Compaction** 로직이 필수적으로 포함됩니다.
-    *   **Failover Strategy**: 주 모델(예: Claude 3.5 Sonnet)이 응답하지 않거나 에러를 내면, 자동으로 서브 모델(예: GPT-4o)로 전환하는 **Failover Error Handling**이 구현되어야 서비스가 중단되지 않습니다.
+### 4-3. [심층 분석] 기억 관리의 미학 (Context Management)
+
+에이전트에게 가장 어려운 것은 **"기억력의 한계"** 입니다.
+
+1.  **Context Window**: AI는 한 번에 기억할 수 있는 양이 정해져 있습니다. (책 한 권 분량 등)
+2.  **Pruning (가지치기)**: 대화가 너무 길어지면, 가장 오래된 대화부터 삭제하거나 중요한 내용만 요약(Summarization)해서 압축해야 합니다.
+3.  **Why?**: 이 작업을 안 하면 서버비(Token 비용)가 폭탄처럼 나오고, 결국 AI가 과부하로 대화를 포기하게 됩니다. `pi-embedded-runner.ts`의 숨은 공로자는 바로 이 **기억 관리 로직**입니다.
+
+#### 4-3-1. [Coach's Tip] 에이전트가 바보가 되었을 때 해결법
+AI 에이전트를 개발하다 보면 가끔 고집을 피우거나 이상한 소리를 할 때가 있습니다. (Hallucination) 그럴 때는 코드를 고치기 전에 **시스템 프롬프트**를 수정해 보세요. 
+"친절하게 대답해" 보다는 **"너는 5년 차 시니어 엔지니어야. 간결하고 정확하게 팩트 위주로 말해"** 라고 구체적으로 역할을 지정하는 것만으로도 성능이 200% 올라갑니다.
 
 ---
 
 ## 5. UI 제어 패널 (The Face)
 
-관리자가 봇을 제어하는 화면입니다.
+관리자가 봇을 제어하고 대화 로그를 실시간으로 확인하는 **"얼굴(Face)"** 입니다.
 
-### 5-1. 웹 컴포넌트 구현 (`ui/src/app.ts`)
+### 5-1. [기술 해부] 왜 React 대신 Lit을 썼을까? (The Choice of Lit)
 
-*   **사용 기술**: **Lit** (Google이 만든 초경량 웹 컴포넌트 라이브러리).
-*   **구현 코드**:
+보통 웹 앱 하면 React를 떠올리지만, OpenClaw(Moltbot)은 Google이 만든 **Lit**을 선택했습니다.
+
+*   **배경**: React는 매우 강력하지만, 라이브러리 크기가 크고 학습 곡선이 있습니다.
+*   **Lit의 특징**: 브라우저 표준 기술인 **웹 컴포넌트(Web Components)** 를 극한으로 활용합니다. 
+*   **장점**: 
+    1. **가볍다**: 별도의 복잡한 빌드 과정 없이도 브라우저에서 매우 빠르게 돌아갑니다.
+    2. **표준이다**: 10년 뒤에 React가 사라져도, Lit으로 만든 컴포넌트는 모든 브라우저에서 여전히 작동할 것입니다.
+
+### 5-2. 웹 컴포넌트 구현 (`ui/src/app.ts`)
+
+이 코드는 서버의 **"귀(WebSocket)"** 에서 들려오는 소리를 화면에 **"그려주는(Rendering)"** 역할을 합니다.
+
+#### 5-2-1. [코드 분석] `MoltbotApp`
 
 ```typescript
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
-@customElement('moltbot-app')
+@customElement('moltbot-app') // 나만의 HTML 태그 만들기: <moltbot-app></moltbot-app>
 export class MoltbotApp extends LitElement {
+  // 1. [상태 변수] 이 값이 바뀌면 화면이 자동으로 다시 그려집니다.
   @state() messages: string[] = [];
 
-  // 웹소켓 연결
+  // 2. [신경 연결] 컴포넌트가 화면에 나타날 때 호출됩니다.
   connectedCallback() {
     super.connectedCallback();
-    const ws = new WebSocket('ws://localhost:18789');
+    // 서버와 실시간 전화선(WebSocket)을 연결합니다.
+    const ws = new WebSocket(`ws://${location.host}`);
+    
     ws.onmessage = (event) => {
-      this.messages = [...this.messages, event.data]; // 상태 업데이트 -> 리렌더링
+      // 서버에서 새 메시지가 오면, 기존 목록에 추가합니다.
+      this.messages = [...this.messages, event.data]; 
     };
   }
 
+  // 3. [그리기] 실제 화면에 보여줄 HTML을 작성합니다.
   render() {
     return html`
-      <div class="chat-container">
-        ${this.messages.map(msg => html`<div class="msg">${msg}</div>`)}
+      <div class="chat-window">
+        <h1>Moltbot 사령부</h1>
+        <div class="log-list">
+          ${this.messages.map(m => html`<p class="log-item">${m}</p>`)}
+        </div>
       </div>
     `;
   }
 }
 ```
 
-*   **Why?**: React는 가상 DOM을 쓰지만, Lit은 브라우저 표준인 **Shadow DOM**을 씁니다. Gateway 서버가 정적 파일로 서빙하기에 훨씬 가볍고, 초기 로딩 속도도 빠릅니다.
+### 5-3. [심층 분석] Shadow DOM 이란 무엇인가?
+
+익숙하지 않은 분들에게는 Lit이 사용하는 **Shadow DOM**이 낯설 것입니다.
+
+*   **은유(Metaphor)**: **"프라이버시 유리 커튼"**.
+*   **설명**: `moltbot-app` 내부의 스타일(CSS)은 외부의 스타일과 **완벽하게 격리**됩니다. 만약 여러분이 실수로 바깥에서 `p { color: red; }` 라고 적어도, 이 컴포넌트 내부의 글자색에는 영향을 주지 않습니다. 
+*   **Why?**: 프로젝트가 커졌을 때 디자인이 꼬이는 것을 원천 봉쇄하기 위한 고급 기술입니다.
+
+#### 5-3-1. [Coach's Tip] 웹은 꾸미기 나름입니다.
+관리자 화면이 너무 투박해 보이나요? 걱정 마세요. Lit은 `css`라는 특수 함수를 통해 아름다운 스타일을 적용할 수 있습니다. 
+나중에 여러분이 프로젝트를 커스터마이징 하고 싶을 때, 이 `app.ts` 파일의 `css` 부분만 건드리면 **다크 모드**나 **애니메이션**도 손쉽게 넣을 수 있습니다.
 
 ---
 
-## 6. 결론 및 클론 전략
+## 6. 결론 및 클론 전략 (Roadmap to Success)
 
-이 구조를 클론할 때 가장 중요한 것은 **"모듈화(Modularity)"**입니다.
+지금까지 우리는 OpenClaw(Moltbot)의 거대한 설계도를 **준비 -> 기초 -> 장기 -> 뇌 -> 얼굴** 순으로 해부해 보았습니다. 이 거대한 코끼리를 한 번에 삼키는 것은 불가능합니다. 하지만 **"부위별로 조립"** 하면 누구나 자신만의 에이전트를 가질 수 있습니다.
 
-1.  **Gateway를 먼저 만드십시오.** 아무런 로직 없이 HTTP/WS 서버만 띄우세요.
-2.  **Mock Channel을 만드십시오.** 실제 WhatsApp을 연결하기 전에, 터미널에서 텍스트를 입력하면 마치 WhatsApp에서 온 것처럼 Gateway에 쏘아주는 가짜 채널을 만드세요. **테스트가 10배 빨라집니다.**
-3.  **Dummy Agent를 만드십시오.** LLM 없이 무조건 "알겠습니다"라고 답하는 에이전트를 먼저 연결하세요.
-4.  **그 다음 통합하십시오.** Gateway, Channel, Agent가 서로의 존재를 모르게(Decoupling) 인터페이스로만 대화하게 만드는 것이 Moltbot 아키텍처의 핵심입니다.
+### 6-1. [추천] 4단계 클론 마일스톤
+
+1.  **[1주 차] 유령 서버 띄우기 (Scaffold)**:
+    *   `pnpm init`부터 `server.ts`의 껍데기만 만드세요.
+    *   브라우저에서 `ok` 글자 하나 띄우는 것만으로도 여러분은 상위 10% 개발자입니다.
+
+2.  **[2주 차] 가짜 채널과 대화하기 (Mocking)**:
+    *   진짜 WhatsApp을 연결하기 전에, 터미널(CLI)에 글을 치면 봇이 대답하게 만드세요.
+    *   **핵심**: 복잡한 통신 모듈(Baileys)을 배제하고 **순수 로직**만 테스트하는 기간입니다.
+
+3.  **[3주 차] 뇌(AI) 이식하기 (Integration)**:
+    *   LangChain이나 OpenAI API를 연결하세요.
+    *   이제 봇이 "알겠습니다" 대신 진짜 생각을 하기 시작합니다.
+
+4.  **[4주 차] 진짜 세상으로 (Deployment)**:
+    *   QR 코드를 찍어 WhatsApp에 연결하고, 라즈베리 파이나 클라우드에 서버를 배포하세요.
+    *   친구들에게 링크를 공유하고 봇이 대답하는 모습을 지켜보세요.
+
+### 6-2. 마지막 한 마디 (Closing Thought)
+
+리버스 엔지니어링은 단순히 남의 코드를 훔쳐보는 것이 아닙니다. **"이 사람은 왜 여기서 이 고민을 했을까?"** 라고 거장과 대화하는 과정입니다.
+
+어렵고 에러가 나더라도 포기하지 마세요. 에러 메시지는 여러분에게 **"사령관님, 이 부분의 보급이 부족합니다!"** 라고 외치는 전보와 같습니다. 하나씩 해결하다 보면 어느덧 여러분은 AI 시대를 이끌어갈 **최고 수준의 시스템 아키텍트**가 되어 있을 것입니다.
+
+**자, 이제 이론은 끝났습니다. 터미널을 켜고 첫 번째 명령어를 치십시오!**
+
+---
