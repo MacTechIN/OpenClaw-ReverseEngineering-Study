@@ -1413,6 +1413,8 @@ export type GatewayServer = {
 };
 ```
 
+#### 📖 코드 설명 (Code Explanation)
+
 1.  **`export type GatewayServer = { ... }`**:
     *   **의미**: "앞으로 `GatewayServer`라고 하면, 무조건 중괄호 `{}` 안에 있는 기능들을 가지고 있어야 한다"는 **계약서(Contract)** 입니다.
     *   **AI 활용법**: AI에게 "서버 만들어줘"라고 하기 전에, **"서버의 리모컨은 무조건 이렇게 생겨야 해"** 라고 이 타입을 먼저 던져주세요. 그러면 AI가 엉뚱한 리모컨을 만들어오지 않습니다.
