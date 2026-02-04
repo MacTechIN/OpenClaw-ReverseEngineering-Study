@@ -1070,6 +1070,93 @@ export * from "./core-v2.js"; // v1 -> v2 로 숫자 하나만 바꿨습니다.
 > 3.  **임포트 체크**: 상단에 있는 `narrate` 함수가 정확한 경로(`../narrator.js`)에서 오고 있는지 확인하세요. (ESM 방식이므로 `.js` 확장자를 붙이는 것이 포인트입니다!)
 
 
+#### 2-8-0. [실제 완성 코드] `src/gateway/server.impl.ts` (핵심 엔진)
+
+이 코드는 OpenClaw 시스템의 모든 부품을 조립하는 **최종 설계도**입니다. 500줄이 넘는 방대한 양이지만, 핵심이 되는 `startGatewayServer` 함수의 내부 로직을 상세히 파헤쳐 보겠습니다.
+
+```typescript
+// [1] 임포트 섹션 (생략)
+import { ... } from "..."
+import { narrate } from "../narrator.js"; 
+
+// [2] 타입 정의
+export type GatewayServer = {
+  close: (opts?: { reason?: string; restartExpectedMs?: number | null }) => Promise<void>;
+};
+
+// [3] 사령관 함수: 서버 기동의 모든 단계를 지휘합니다.
+export async function startGatewayServer(
+  port = 18789,
+  opts: GatewayServerOptions = {},
+): Promise<GatewayServer> {
+  // 1단계: 환경 변수 및 설정 준비
+  process.env.CLAWDBOT_GATEWAY_PORT = String(port);
+  let configSnapshot = await readConfigFileSnapshot();
+  
+  // 2단계: 레거시 설정 마이그레이션 (과거의 유산 정리)
+  if (configSnapshot.legacyIssues.length > 0) {
+    const { config: migrated, changes } = migrateLegacyConfig(configSnapshot.parsed);
+    await writeConfigFile(migrated);
+    log.info(`gateway: migrated legacy config entries`);
+  }
+
+  // 3단계: 장기(Subsystems) 초기화
+  narrate({ who: "startGatewayServer", role: "총사령관", action: "장기 부착 시작" });
+  const nodeRegistry = new NodeRegistry();
+  const channelManager = createChannelManager({
+    loadConfig,
+    channelLogs,
+    channelRuntimeEnvs,
+  });
+
+  // 4단계: 실시간 통신망(WebSocket) 및 HTTP 서버 기동
+  const { httpServer, wss, clients, broadcast } = await createGatewayRuntimeState({
+    cfg: loadConfig(),
+    bindHost: "0.0.0.0",
+    port,
+    // ... 기타 설정들
+  });
+  
+  // 5단계: 신경망 핸들러 연결 (데이터가 흐르기 시작하는 지점)
+  attachGatewayWsHandlers({
+    wss,
+    clients,
+    port,
+    gatewayMethods,
+    logGateway: log,
+    broadcast,
+    context: {
+        // ... 서버의 모든 기능을 핸들러에 주입 (Dependency Injection)
+        nodeRegistry,
+        channelManager,
+        cron,
+        loadGatewayModelCatalog,
+    }
+  });
+
+  // 6단계: 외부 노출 및 보안 설정 (Tailscale 등)
+  const tailscaleCleanup = await startGatewayTailscaleExposure({ ... });
+
+  // 7단계: 기동 완료 보고
+  log.info("🚀 Gateway Server is ready for action!");
+  narrate({ who: "startGatewayServer", role: "총사령관", action: "기동 완료 보고" });
+
+  // 8단계: 통제권 반환 (종료 버튼 제공)
+  return {
+    close: async (opts) => {
+      await close(opts); // 모든 장기 정지 및 메모리 해제
+      log.info("🛑 Gateway Server shut down safely.");
+    },
+  };
+}
+```
+
+> [!TIP]
+> **500줄의 전체 미로를 탐험하고 싶다면?**
+> 실시간 업데이트되는 전체 원본 소스 코드는 프로젝트 내 [server.impl.ts](file:///Users/sl/Workspace/moltbot-2026.1.24/src/gateway/server.impl.ts) 파일에 보존되어 있습니다. 이 코드는 **"어떻게 70개의 파일이 하나로 꿰어지는가"**에 대한 정답지입니다. 
+
+
+
 눈앞에 펼쳐진 **약 600줄의 코드**가 위압적으로 느껴지십니까? 당연합니다.
 이곳은 단순한 코드가 아닙니다. 서버의 오감을 깨우고, 인공지능 두뇌를 연결하고, 전 세계와 통신하는 신경망을 지휘하는 **"사령부"** 이기 때문입니다.
 
