@@ -475,62 +475,71 @@
     ---
 
 #### 1-3-1. TypeScript 설정 (`tsconfig.json`) - 아키텍처 심층 분석
-    
 
-    이 설정 파일은 프로젝트의 **"법전(宪法)"**과 같습니다. 단순한 설정이 아니라, 이 프로젝트가 **모던 자바스크립트 생태계(ESM)** 에서 어떻게 살아남을지를 정의합니다.
+**1. 은유(Metaphor): 건물의 설계 규격과 "헌법(憲法)"**
 
-    *   **코드 (원본 Source Code)**:
-        ```json
-        {
-          "compilerOptions": {
-            "target": "ES2022",
-            "module": "NodeNext",
-            "moduleResolution": "NodeNext",
-            "outDir": "dist",
-            "rootDir": "src",
-            "strict": true,
-            "esModuleInterop": true,
-            "forceConsistentCasingInFileNames": true,
-            "skipLibCheck": true,
-            "resolveJsonModule": true,
-            "noEmitOnError": true,
-            "allowSyntheticDefaultImports": true
-          },
-          "include": ["src/**/*"],
-          "exclude": [
-            "node_modules",
-            "dist",
-            "src/**/*.test.ts",
-            "src/**/*.test.tsx",
-            "src/**/test-helpers.ts"
-          ]
-        }
-        ```
+아파트 단지를 지을 때, 모든 건물의 자재 규격이 같아야 하고 배선은 통일된 규칙을 따라야 합니다. `tsconfig.json`은 이 프로젝트가 어떤 규칙으로 지어지고, 최종적으로 어떤 결과물(JavaScript)로 번역될지를 정하는 **최상위 법전**이자 **설계 도면**입니다. 이 도면이 틀리면 아무리 코드를 잘 짜도 집이 무너집니다.
 
-    *   **🔬 초정밀 분석 (Micro-Analysis)**:
+**2. 개념(Concept): TypeScript 컴파일러 설정 안내서**
 
-        *   **[1] `target`: "ES2022"**
-            *   **의미**: "결과물(JS)이 2022년도 표준 문법을 사용해라."
-            *   **Why?**: Node.js 18+ 버전부터는 `Top-level await`(비동기 함수 밖에서 await 쓰기), `Class properties` 같은 최신 기능을 **네이티브**로 지원합니다. 굳이 옛날 문법(ES5)으로 바구면 코드가 길어지고 느려집니다. 서버 전용 프로젝트이므로 브라우저 호환성 걱정 없이 최신 문법을 써서 **성능 최적화**를 합니다.
+이 파일은 `tsc`(컴파일러)에게 "이 프로젝트의 소스 코드는 여기에 있고, 번역된 결과물은 저기에 저장하고, 번역할 때는 이런 규칙을 지켜줘!"라고 상세히 지시하는 메뉴얼입니다. 단순한 설정 파일이 아니라, 프로젝트의 **정체성(ESM vs CJS)**을 결정짓는 핵심 문서입니다.
 
-        *   **[2] `module` & `moduleResolution`: "NodeNext" (★ 가장 중요)**
-            *   **의미**: "Node.js의 최신 모듈 해석 규칙을 엄격하게 따라라."
-            *   **배경**: 자바스크립트는 역사적으로 `require()`를 쓰는 **CJS(CommonJS)** 와 `import`를 쓰는 **ESM(ECMAScript Modules)** 진영으로 나뉘어 전쟁 중이었습니다. 최신 라이브러리들(Hono, Baileys, Chalk 5+)은 이제 **ESM만 지원(Pure ESM)** 합니다.
-            *   **Why?**: 만약 이 설정을 안 하면, `import { makeWASocket } from 'baileys'` 할 때 "모듈을 찾을 수 없습니다"라는 에러가 터집니다. NodeNext 모드는 `.ts` 파일이 컴파일될 때 확장자를 `.js`로 붙일지 `.mjs`로 붙일지, `package.json`의 `exports` 필드를 어떻게 읽을지를 결정합니다. **이것이 없으면 프로젝트 자체가 시작되지 않습니다.**
+**3. 코드(Code): 원본 `tsconfig.json`**
 
-        *   **[3] `strict`: true**
-            *   **의미**: "조금이라도 애매하면 에러를 뱉어라."
-            *   **Why?**: `null`이나 `undefined`가 될 수 있는 변수를 체크 안 하고 쓰면 런타임에 서버가 죽습니다. TypeScript가 코딩 단계에서 **"너 이거 null 일 수도 있어!"**라고 멱살을 잡게 만드는 설정입니다. 대규모 프로젝트의 **안전벨트**입니다.
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "noEmitOnError": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/test-helpers.ts"
+  ]
+}
+```
 
-        *   **[4] `outDir`: "./dist"**
-            *   **의미**: "번역된 JS 파일은 `dist` 폴더에 몰아 넣어라."
-            *   **구조적 이유**: 소스(`src`)와 결과물(`dist`)을 분리해야, 나중에 Docker 이미지를 만들 때 `dist`만 쏙 복사해서 배포하기 좋습니다. (이미지 크기 최소화)
+**4. 배경 및 초정밀 분석(Context & Micro-Analysis): 설계자의 의도 파악**
 
-    *   **🚦 시작점(Entry Point)과의 연결**:
-        이 설정은 `package.json`의 `"type": "module"` 설정과 세트입니다.
-        1.  Node.js가 실행되면 `package.json`을 보고 "아, 이 프로젝트는 ESM이구나"라고 인식합니다.
-        2.  `tsconfig.json`의 `NodeNext` 규칙에 따라 `import` 구문을 해석합니다.
-        3.  `server.ts`에서 `Hono`를 import 할 때, `node_modules/hono/dist/index.mjs`를 정확히 찾아냅니다.
+*   **[1] `target`: "ES2022"**
+    *   **은유(Metaphor)**: **"번역기의 목표 언어 버전"**. (현대어를 조선시대 고어로 번역하면 말이 길어지듯이, 구식 JS로 번역하지 않고 최신 문법을 그대로 씁니다.)
+    *   **설명**: TypeScript를 최종적으로 어떤 버전의 JS로 번역할지 정합니다.
+    *   **Why?**: Node.js 18+ 최신 기능을 네이티브로 활용하여 별도의 polyfill 없이 성능을 최적화하고 코드 길이를 줄이기 위함입니다.
+
+*   **[2] `module` & `moduleResolution`: "NodeNext"**
+    *   **은유(Metaphor)**: **"최신 통신 규약 매뉴얼"**. (주변 사람들이 다 5G 스마트폰을 쓰는데 우리만 2G 폴더폰을 쓸 수 없듯이, 최신 라이브러리들의 소통 방식에 맞추는 것입니다.)
+    *   **설명**: 최신 Node.js의 모듈 시스템(ESM)을 엄격하게 따르도록 지시합니다.
+    *   **Why?**: Hono, Baileys 같은 최신 라이브러리들은 ESM 전용으로 나오기 때문에, 이 설정이 없으면 아예 프로젝트를 시작할 수도 없습니다.
+
+*   **[3] `strict`: true**
+    *   **은유(Metaphor)**: **"절대로 타협하지 않는 깐깐한 감리사"**. (조금이라도 부실한 시공이 보이면 공사를 아예 중단시킵니다. 귀찮지만 그게 나중에 무너지는 것보다 낫습니다.)
+    *   **설명**: 모든 타입 체크 규칙을 가장 엄격하게 적용합니다.
+    *   **Why?**: 런타임에서 서버가 갑자기 죽는 'Null Pointer Exception' 같은 끔찍한 사고를 코딩 단계에서 원천 봉쇄하기 위한 최고 수준의 안전장치입니다.
+
+*   **[4] `outDir`: "./dist"**
+    *   **은유(Metaphor)**: **"완성된 가구만 모아두는 출고 창고"**. (작업장(src)과 출고장(dist)을 분리하여 관리를 용이하게 합니다.)
+    *   **설명**: 컴파일된 결과물(.js)이 저장될 위치를 정합니다.
+    *   **Why?**: 배포 시 소스 코드는 제외하고 가벼운 결과물만 쏙 뽑아서 Docker 이미지로 만들기 위한 배포 자동화의 기초입니다.
+
+**🚦 시작점(Entry Point)과의 연결**:
+이 설정은 `package.json`의 `"type": "module"` 설정과 하나의 유기체처럼 움직입니다.
+1. `package.json`이 전체 프로젝트의 '모듈 방식'을 ESM으로 선포하면,
+2. `tsconfig.json`이 그 선포에 맞춰 세부 번역 규칙을 집행합니다.
+3. 그 결과, `server.ts`에서 최신 라이브러리들을 아무 문제 없이 불러올 수 있게 됩니다.
 
 
 
