@@ -59,6 +59,7 @@ The wizard installs the Gateway daemon (launchd/systemd user service) so it stay
 Runtime: **Node ≥22**.
 
 Full beginner guide (auth, pairing, channels): [Getting started](https://docs.openclaw.ai/start/getting-started)
+**Korean Guide:** [CLONE_MANUAL.md](CLONE_MANUAL.md) — 상세한 한글 클론 구축 가이드
 
 ```bash
 openclaw onboard --install-daemon
