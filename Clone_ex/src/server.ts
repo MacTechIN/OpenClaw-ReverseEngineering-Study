@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { startGatewayServer } from "./gateway/server.js";
 import { narrate } from "./narrator.js";
 
@@ -20,10 +21,10 @@ async function run() {
   `);
 
   // 프로세스 종료 시 서버 안전 종료
-  process.on('SIGINT', async () => {
+  (process as any).on('SIGINT', async () => {
     console.log("\n종료 신호를 받았습니다...");
     await server.close({ reason: "Process interrupted" });
-    process.exit(0);
+    (process as any).exit(0);
   });
 }
 
