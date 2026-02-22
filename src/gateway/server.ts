@@ -1,3 +1,2 @@
-export { truncateCloseReason } from "./server/close-reason.js";
-export type { GatewayServer, GatewayServerOptions } from "./server.impl.js";
-export { __resetModelCatalogCacheForTest, startGatewayServer } from "./server.impl.js";
+export { startGatewayServer } from "./server.impl.js";
+export type { GatewayServer } from "./server.impl.js";
