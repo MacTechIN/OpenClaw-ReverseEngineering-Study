@@ -895,6 +895,11 @@ export function narrate(info: {
 
 ---
 
+
+
+
+
+
 ### 2-7. [확대 분석] 서버 진입점 생성 (`src/gateway/server.ts`) - **[단계 1: 기초 공사/얼굴]**
 
 
